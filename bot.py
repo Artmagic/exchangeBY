@@ -68,24 +68,24 @@ _user_city: dict[int, str] = {}
 # --- кнопки -----------------------------------------------------------------
 # Постоянная клавиатура под полем ввода. Тексты кнопок = ключи обработчиков.
 BTN = {
-    "rates": "🇷🇺 Россия",
-    "market": "📈 Курс ₽",
+    "rates": "🏦 Банки РФ",     # наличка в обменниках (покупка/продажа по банкам)
+    "market": "📈 Рынок",       # рыночный/биржевой курс (profinance + investing)
     "cbr": "🏛 ЦБ РФ",
     "usdt": "💲 USDT",
     "by": "🇧🇾 Беларусь",
     "subs": "🔔 Подписки",
     "cifra": "🏦 Cifra",        # только для админов
-    "vernadka": "🏦 Вернадка",  # только для админов
+    "vernadka": "🏢 Вернадка",  # только для админов
 }
 # ID пользователей, которым доступен брокер Cifra (и админ-команды)
 ADMIN_IDS = {8762086055, 943531954}
 
 _MAIN_ROWS = [
-    [KeyboardButton(text=BTN["rates"]), KeyboardButton(text=BTN["by"])],
+    [KeyboardButton(text=BTN["rates"]), KeyboardButton(text=BTN["cbr"])],
     [
         KeyboardButton(text=BTN["market"]),
-        KeyboardButton(text=BTN["cbr"]),
         KeyboardButton(text=BTN["usdt"]),
+        KeyboardButton(text=BTN["by"]),
     ],
     [KeyboardButton(text=BTN["subs"])],
 ]
