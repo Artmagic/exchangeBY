@@ -58,6 +58,13 @@ async def fetch_xe() -> dict[str, float]:
 def format_xe(data: dict[str, float]) -> str:
     lines = ["🌐 <b>xe.com</b> (mid-market)"]
     for label in PAIRS:
-        if label in data:
-            lines.append(f"{_ICON[label]} {label}: <b>{_fmt(data[label])}</b>")
+        if label not in data:
+            continue
+        base = label.split("/")[0]       # напр. EUR из EUR/USD
+        v = data[label]                  # X/USD
+        rev = 1.0 / v                     # USD/X (обратный курс)
+        lines.append(
+            f"{_ICON[label]} {label} <b>{_fmt(v)}</b> · "
+            f"USD/{base} <b>{_fmt(rev)}</b>"
+        )
     return "\n".join(lines)
