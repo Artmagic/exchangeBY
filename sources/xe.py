@@ -25,6 +25,7 @@ PAIRS = {
     "CHF/USD": "CHF",
     "CNY/USD": "CNY",
     "INR/USD": "INR",
+    "AED/USD": "AED",
 }
 _ICON = {
     "EUR/USD": "🇪🇺",
@@ -32,6 +33,7 @@ _ICON = {
     "CHF/USD": "🇨🇭",
     "CNY/USD": "🇨🇳",
     "INR/USD": "🇮🇳",
+    "AED/USD": "🇦🇪",
 }
 
 
