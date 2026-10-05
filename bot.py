@@ -72,6 +72,7 @@ BTN = {
     "market": "📈 Рынок",       # рыночный/биржевой курс (profinance + investing)
     "cbr": "🏛 ЦБ РФ",
     "usdt": "💲 USDT",
+    "xe": "🌐 xe.com",          # пары к доллару (EUR/GBP/CHF/CNY/INR)
     "by": "🇧🇾 Беларусь",
     "subs": "🔔 Подписки",
     "cifra": "🏦 Cifra",        # только для админов
@@ -82,11 +83,8 @@ ADMIN_IDS = {8762086055, 943531954}
 
 _MAIN_ROWS = [
     [KeyboardButton(text=BTN["rates"]), KeyboardButton(text=BTN["cbr"])],
-    [
-        KeyboardButton(text=BTN["market"]),
-        KeyboardButton(text=BTN["usdt"]),
-        KeyboardButton(text=BTN["by"]),
-    ],
+    [KeyboardButton(text=BTN["market"]), KeyboardButton(text=BTN["usdt"])],
+    [KeyboardButton(text=BTN["xe"]), KeyboardButton(text=BTN["by"])],
     [KeyboardButton(text=BTN["subs"])],
 ]
 MAIN_KB = ReplyKeyboardMarkup(
@@ -898,6 +896,17 @@ async def btn_cbr(message: Message):
 @dp.message(F.text == BTN["usdt"])
 async def btn_usdt(message: Message):
     await cmd_usdt(message)
+
+
+@dp.message(F.text == BTN["xe"])
+async def btn_xe(message: Message):
+    status = await message.answer("⏳ xe.com…")
+    try:
+        x = await fetch_xe()
+    except Exception:
+        logger.exception("Button xe")
+        x = None
+    await status.edit_text(format_xe(x) if x else "😕 Нет данных.")
 
 
 @dp.message(F.text == BTN["by"])

@@ -19,8 +19,25 @@ API = "https://www.xe.com/api/protected/midmarket-converter/"
 AUTH = "Basic bG9kZXN0YXI6cHVnc25heA=="  # публичный ключ фронтенда xe.com
 
 # ярлык пары -> код валюты (X/USD = 1 / rates[X])
-PAIRS = {"EUR/USD": "EUR", "CNY/USD": "CNY"}
-_ICON = {"EUR/USD": "🇪🇺", "CNY/USD": "🇨🇳"}
+PAIRS = {
+    "EUR/USD": "EUR",
+    "GBP/USD": "GBP",
+    "CHF/USD": "CHF",
+    "CNY/USD": "CNY",
+    "INR/USD": "INR",
+}
+_ICON = {
+    "EUR/USD": "🇪🇺",
+    "GBP/USD": "🇬🇧",
+    "CHF/USD": "🇨🇭",
+    "CNY/USD": "🇨🇳",
+    "INR/USD": "🇮🇳",
+}
+
+
+def _fmt(v: float) -> str:
+    # мелкие значения (напр. INR/USD ≈ 0.012) показываем точнее
+    return f"{v:.4f}" if v >= 0.1 else f"{v:.5f}"
 
 
 async def fetch_xe() -> dict[str, float]:
@@ -42,5 +59,5 @@ def format_xe(data: dict[str, float]) -> str:
     lines = ["🌐 <b>xe.com</b> (mid-market)"]
     for label in PAIRS:
         if label in data:
-            lines.append(f"{_ICON[label]} {label}: <b>{data[label]:.4f}</b>")
+            lines.append(f"{_ICON[label]} {label}: <b>{_fmt(data[label])}</b>")
     return "\n".join(lines)
