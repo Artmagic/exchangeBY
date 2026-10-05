@@ -1,0 +1,25 @@
+# окружение / кэш
+.venv/
+__pycache__/
+*.pyc
+.idea/
+.DS_Store
+
+# служебные файлы бота
+bot.lock
+bot.log
+
+# СЕКРЕТЫ и персональные данные — на GitHub НЕ пушим
+config.py
+subscriptions.json
+subscriptions_by.json
+state.json
+users.json
+
+# временные артефакты разведки
+sravni_next.*
+bankiros.html
+page.html
+rendered.html
+first_card.html
+captured_*.json

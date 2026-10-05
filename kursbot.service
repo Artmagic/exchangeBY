@@ -1,0 +1,16 @@
+[Unit]
+Description=Kurs Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+WorkingDirectory=__WORKDIR__
+ExecStart=__WORKDIR__/.venv/bin/python bot.py
+Restart=always
+RestartSec=5
+# страховка от OOM на 1 ГБ: не даём процессу утащить всю память
+MemoryMax=900M
+
+[Install]
+WantedBy=multi-user.target
