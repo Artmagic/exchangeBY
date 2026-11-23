@@ -52,6 +52,7 @@ from sources.investing import fetch_investing, format_investing
 from sources.market import fetch_inr_rub, fetch_market, format_market
 from sources.profinance import fetch_profinance, format_profinance
 from sources.rapira import fetch_rapira_usdt, format_usdt
+from sources.abcex import fetch_abcex_usdt, format_abcex
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -242,7 +243,7 @@ async def cmd_start(message: Message):
         "• <b>/buy</b> — где выгоднее <b>купить</b> валюту (можно <code>/buy EUR</code>)\n"
         "• <b>/sell</b> — где выгоднее <b>продать</b> валюту\n"
         "• <b>/cbr</b> — официальные курсы ЦБ (USD/EUR/CNY/INR/TRY)\n"
-        "• <b>/usdt</b> — курс USDT/RUB на Rapira\n"
+        "• <b>/usdt</b> — курс USDT/RUB (Rapira + ABCEX)\n"
         "• <b>/market</b> — курс рубля: profinance + investing вместе\n"
         "• <b>/profinance</b> — биржевой курс (bid/ask)\n"
         "• <b>/investing</b> — рыночный курс с investing.com\n"
@@ -457,19 +458,29 @@ async def cmd_cbr(message: Message):
     await message.answer(format_cbr(c))
 
 
-@dp.message(Command("usdt"))
-async def cmd_usdt(message: Message):
-    """Курс USDT/RUB с биржи Rapira."""
+async def _usdt_combined() -> str:
+    """USDT/RUB с нескольких бирж: Rapira + ABCEX (ошибка одной не роняет вывод)."""
+    parts: list[str] = []
     try:
         u = await fetch_rapira_usdt()
-    except Exception as e:
+        if u:
+            parts.append(format_usdt(u))
+    except Exception:
         logger.exception("Rapira")
-        await message.answer(f"⚠️ Не удалось получить курс USDT: {e}")
-        return
-    if not u:
-        await message.answer("😕 Rapira не вернула пару USDT/RUB.")
-        return
-    await message.answer(format_usdt(u))
+    try:
+        a = await fetch_abcex_usdt()
+        if a:
+            parts.append(format_abcex(a))
+    except Exception:
+        logger.exception("ABCEX")
+    return "\n\n".join(parts)
+
+
+@dp.message(Command("usdt"))
+async def cmd_usdt(message: Message):
+    """Курс USDT/RUB с бирж Rapira и ABCEX."""
+    text = await _usdt_combined()
+    await message.answer(text or "😕 Биржи не вернули пару USDT/RUB.")
 
 
 async def _profinance_text() -> str:
@@ -803,22 +814,17 @@ async def _push_news(bot: Bot) -> None:
 
 
 async def _push_rapira(bot: Bot) -> None:
-    """Ежечасная рассылка курса USDT/RUB с Rapira всем подписчикам."""
+    """Ежечасная рассылка курса USDT/RUB (Rapira + ABCEX) всем подписчикам."""
     if not _subs:
         return
-    try:
-        u = await fetch_rapira_usdt()
-    except Exception:
-        logger.exception("Ежечасный Rapira")
+    text = await _usdt_combined()
+    if not text:
         return
-    if not u:
-        return
-    text = format_usdt(u)
     for uid in list(_subs):
         try:
             await bot.send_message(uid, text)
         except Exception:
-            logger.exception("Пуш Rapira %s", uid)
+            logger.exception("Пуш USDT %s", uid)
 
 
 RAPIRA_EVERY = 3600   # раз в час
@@ -929,7 +935,7 @@ INLINE_ITEMS = [
     ("rates", "🇷🇺 Курсы РФ", "банки: топ покупка/продажа"),
     ("market", "📈 Курс ₽", "биржевой USD/EUR/CNY к рублю (bid/ask)"),
     ("cbr", "🏛 ЦБ РФ", "офиц. курсы USD/EUR/CNY/INR/TRY"),
-    ("usdt", "💲 USDT", "Rapira USDT/RUB"),
+    ("usdt", "💲 USDT", "USDT/RUB: Rapira + ABCEX"),
     ("by", "🇧🇾 Беларусь", "Минск: USD/RUB, EUR/RUB"),
 ]
 
@@ -951,8 +957,7 @@ async def refresh_inline_cache() -> None:
         return format_cbr(await fetch_cbr())
 
     async def usdt_text():
-        u = await fetch_rapira_usdt()
-        return format_usdt(u) if u else ""
+        return await _usdt_combined()
 
     async def market_text():
         return await _market_text()
@@ -1086,7 +1091,7 @@ COMMANDS = [
     BotCommand(command="buy", description="Где выгоднее купить валюту"),
     BotCommand(command="sell", description="Где выгоднее продать валюту"),
     BotCommand(command="cbr", description="Курсы ЦБ РФ: USD/EUR/CNY/INR/TRY"),
-    BotCommand(command="usdt", description="Курс USDT/RUB на Rapira"),
+    BotCommand(command="usdt", description="Курс USDT/RUB: Rapira + ABCEX"),
     BotCommand(command="market", description="Курс рубля: profinance + investing"),
     BotCommand(command="profinance", description="Биржевой курс рубля (profinance, bid/ask)"),
     BotCommand(command="investing", description="Рыночный курс рубля (investing.com)"),
